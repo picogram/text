@@ -38,3 +38,29 @@
 	      (length seq*)))))
     
 
+(defun restore (tree)
+  (let ((buffer)
+	(stack-pointer (make-hash-table :test 'equalp)))
+    (labels ((walk (node context) 
+	       (cond ((characterp node)
+		      (push node buffer))
+		     ((consp node)
+		      (cond ((arrayp (car node))
+			     (let ((p (gethash `(,(reverse context) ,(car node)) stack-pointer)))
+			       (when (null p)
+				 (setf p 0)
+				 (setf (gethash `(,(reverse context) ,(car node)) stack-pointer) p))
+			       (push (aref (car node) p) context)
+			       (if (= (aref (car node) p) 0)
+				   (walk (cadr node) context)
+				   (walk (caddr node) context))
+			       (pop context)
+			       (incf (gethash `(,(reverse context) ,(car node)) stack-pointer)))))))))
+      (loop for x across (car tree)
+	 do (walk tree nil)))
+    (with-output-to-string (s)
+      (dolist (char (nreverse buffer))
+	(princ char s)))))
+      
+	       
+			    
