@@ -4,7 +4,7 @@
 	 for i from 0 below end
        do (when (equalp char (nth i seq))
 	    (incf count)))
-    count)))
+    count))
 
 (defun make-suffix-array (text)
   (let* ((text* (concatenate 'string text '(#\Nul)))
