@@ -1,3 +1,5 @@
+(in-package #:pg-text)
+
 (defun rank (char seq end)
   (let ((count 0))
     (loop

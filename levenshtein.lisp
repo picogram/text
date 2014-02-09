@@ -1,3 +1,4 @@
+(in-package #:pg-text)
 
 (defun levenshtein-distance (a b)
   (when (equalp a b)

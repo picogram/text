@@ -1,26 +1,6 @@
 ;; http://en.wikipedia.org/wiki/Wavelet_Tree
 
-(defun build-tree (text)
-  (let* ((b* (multiple-value-bind
-		   (c cardinarity) (boundary-value text)
-	       (list c cardinarity)))
-	 (b (car b*))
-	 (cardinarity (cadr b*)))
-    (when (<= cardinarity 1)
-      (return-from build-tree b))
-    (loop
-       with v = (make-array 1 :element-type 'bit
-			    :adjustable t :fill-pointer 0)
-       with l = (make-array 1 :element-type 'character
-			    :adjustable t :fill-pointer 0)
-       with r = (make-array 1 :element-type 'character
-			    :adjustable t :fill-pointer 0)
-       finally (return (list v (build-tree l) (build-tree r)))
-       for c across text
-       do 
-	 (vector-push-extend (if (char<= c b) 0 1) v)
-	 (vector-push-extend c (if (char<= c b) l r)))))
-
+(in-package #:pg-text)
 
 (defun boundary-value (seq)
   (let ((seq* (make-array 1 :element-type 'character
@@ -37,8 +17,28 @@
 			x))
 	      (length seq*)))))
     
+(defun wavelet-tree (text)
+  (let* ((b* (multiple-value-bind
+		   (c cardinarity) (boundary-value text)
+	       (list c cardinarity)))
+	 (b (car b*))
+	 (cardinarity (cadr b*)))
+    (when (<= cardinarity 1)
+      (return-from wavelet-tree b))
+    (loop
+       with v = (make-array 1 :element-type 'bit
+			    :adjustable t :fill-pointer 0)
+       with l = (make-array 1 :element-type 'character
+			    :adjustable t :fill-pointer 0)
+       with r = (make-array 1 :element-type 'character
+			    :adjustable t :fill-pointer 0)
+       finally (return (list v (wavelet-tree l) (wavelet-tree r)))
+       for c across text
+       do 
+	 (vector-push-extend (if (char<= c b) 0 1) v)
+	 (vector-push-extend c (if (char<= c b) l r)))))
 
-(defun restore (tree)
+(defun restore-wavelet-tree (tree)
   (let ((buffer)
 	(stack-pointer (make-hash-table :test 'equalp)))
     (labels ((walk (node context) 
